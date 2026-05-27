@@ -27,15 +27,18 @@ public class RelatorioService {
         List<Grupo> listaGrupos = grupoRepo.findByTrabalhoEmGrupo(trabalho);
 
         List<GrupoRelatorioDTO> gruposDTO = listaGrupos.stream().map(g -> {
-            List<String> nomesAlunos = grupoUsuarioRepo.findByGrupo(g)
+            var posicoes = grupoUsuarioRepo.findByGrupo(g);
+
+            List<String> nomesAlunos = posicoes
                     .stream()
+                    .filter(gu -> gu.getUsuario() != null)
                     .map(gu -> gu.getUsuario().getNome())
                     .toList();
 
             return new GrupoRelatorioDTO(
                     g.getDescricao(),
                     nomesAlunos.size(),
-                    trabalho.getQuantidadePessoas(),
+                    posicoes.size(),
                     nomesAlunos
             );
         }).toList();
