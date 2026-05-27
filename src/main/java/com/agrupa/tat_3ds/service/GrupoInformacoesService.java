@@ -41,6 +41,11 @@ public class GrupoInformacoesService {
                 .max()
                 .orElse(0);
 
+        // A quantidade de usuarios considera apenas posicoes ocupadas.
+        int quantidadeUsuarios = (int) grupoUsuarios.stream()
+                .filter(p -> p.getUsuario() != null)
+                .count();
+
         List<PosicaoUsuariosDTO> posicaoUsuarios = grupoUsuarios.stream()
                 .map(p -> new PosicaoUsuariosDTO(p.getPosicao(),
                         p.getUsuario() != null ? p.getUsuario().getNome() : null))
@@ -52,7 +57,7 @@ public class GrupoInformacoesService {
                 grupo.getIdGrupo(),
                 posicaoUsuarios,
                 grupo.getDescricao(),
-                posicaoUsuarios.size(),
+                quantidadeUsuarios,
                 capacidadePelaPosicao,
                 trabalho.getHashParaAcesso(),
                 trabalho.getDescricao(),
