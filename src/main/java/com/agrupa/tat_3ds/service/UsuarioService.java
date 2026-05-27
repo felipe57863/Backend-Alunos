@@ -20,6 +20,7 @@ public class UsuarioService {
 
     public Usuario cadastrar(UsuarioCadastroDTO dto){
 
+        // Mantem o formato nome.sobrenome removendo espacos e padronizando minusculas.
         String nomeFormatado =
                 dto.getNome().trim().toLowerCase() + "." +
                         dto.getSobrenome().trim().toLowerCase();
