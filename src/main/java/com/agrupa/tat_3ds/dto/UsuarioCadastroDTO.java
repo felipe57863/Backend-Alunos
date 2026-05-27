@@ -6,6 +6,7 @@ import lombok.Data;
 public class UsuarioCadastroDTO {
 
     private String nome;
-    private Integer sobrenome;
+    // Sobrenome precisa ser texto para permitir trim() e toLowerCase() no cadastro.
+    private String sobrenome;
     private String hash;
 }
