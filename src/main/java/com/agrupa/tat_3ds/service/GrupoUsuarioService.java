@@ -39,8 +39,29 @@ public class GrupoUsuarioService {
         Usuario usuario = usuarioOpt.get();
         Grupo grupoDestino = grupoOpt.get();
 
-        List<GrupoUsuario> existentes = grupoUsuarioRepository.findByUsuario(usuario);
+        if (posicao == null || posicao <= 0) {
+            return null;
+        }
 
+        List<GrupoUsuario> posicoesDestino = grupoUsuarioRepository.findByGrupo(grupoDestino);
+
+        Optional<GrupoUsuario> vagaDestinoOpt = posicoesDestino.stream()
+                .filter(g -> posicao.equals(g.getPosicao()))
+                .findFirst();
+
+        if (vagaDestinoOpt.isEmpty()) {
+            return null;
+        }
+
+        GrupoUsuario vagaDestino = vagaDestinoOpt.get();
+
+        if (vagaDestino.getUsuario() != null
+                && !vagaDestino.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            return null;
+        }
+
+        // Valida a vaga destino antes de liberar a posicao antiga do usuario.
+        List<GrupoUsuario> existentes = grupoUsuarioRepository.findByUsuario(usuario);
         List<GrupoUsuario> existentesNoMesmoGrupo = existentes.stream()
                 .filter(g -> g.getGrupo() != null
                         && g.getGrupo().getTrabalhoEmGrupo() != null
@@ -48,34 +69,19 @@ public class GrupoUsuarioService {
                         .equals(grupoDestino.getTrabalhoEmGrupo().getIdTrabalho()))
                 .toList();
 
-        Optional<GrupoUsuario> talvezMesmoPar =
-                grupoUsuarioRepository.findByUsuarioAndGrupo(usuario, grupoDestino);
-
-        if (talvezMesmoPar.isPresent()) {
-            GrupoUsuario gp = talvezMesmoPar.get();
-            gp.setPosicao(posicao);
-            return grupoUsuarioRepository.save(gp);
-        }
-
         for (GrupoUsuario antigo : existentesNoMesmoGrupo) {
-            antigo.setUsuario(null);
-            grupoUsuarioRepository.save(antigo);
+            if (!antigo.getIdSequencial().equals(vagaDestino.getIdSequencial())) {
+                antigo.setUsuario(null);
+                grupoUsuarioRepository.save(antigo);
+            }
         }
 
-        Optional<GrupoUsuario> vaga = grupoUsuarioRepository.findByGrupo(grupoDestino)
-                .stream()
-                .filter(g -> g.getUsuario() == null)
-                .findFirst();
-
-        if (vaga.isEmpty()) return null;
-
-        GrupoUsuario gu = vaga.get();
-        gu.setUsuario(usuario);
+        vagaDestino.setUsuario(usuario);
 
         usuario.setIdGrupo(grupoDestino.getIdGrupo());
         usuarioRepository.save(usuario);
 
-        return grupoUsuarioRepository.save(gu);
+        return grupoUsuarioRepository.save(vagaDestino);
     }
 
 
